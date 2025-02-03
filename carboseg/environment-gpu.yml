@@ -1,0 +1,14 @@
+name: carboseg-gpu
+channels:
+- conda-forge
+- defaults
+dependencies:
+- python=3.7
+- pillow
+- tqdm
+- requests
+- cudatoolkit
+- cudnn
+- pip
+- pip:
+    - onnxruntime-gpu
