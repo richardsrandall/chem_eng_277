@@ -56,11 +56,11 @@ f_replace = 1;
 ln = length(n); % number of images
 
 disp('Reading files:');
-tools.textbar([0, ln]);
+%tools.textbar([0, ln]);
 for ii=ln:-1:1 % reverse order to pre-allocate
     Imgs(ii).raw = imread([Imgs(ii).folder, Imgs(ii).fname]);
     Imgs(ii).raw = Imgs(ii).raw(:,:,1);
-    tools.textbar([ln - ii + 1, ln])
+    %tools.textbar([ln - ii + 1, ln])
 end
 disp(' ');
 
@@ -138,11 +138,14 @@ end
 function [Imgs, pixsizes] = detect_footer_scale(Imgs, f_replace)
 
 disp('Looking for footers/scale:');
-tools.textbar([0, length(Imgs)]);
+%tools.textbar([0, length(Imgs)]);
 
 % Outer loop allows for images with different footers/scale bars.
 for jj=1:length(Imgs)
     
+    disp("   ")
+    disp("Working on image: "+string(jj))
+    %pause(0.05)
     
     %== OPTION 1 =========================================================%
     % Designed for UBC footer. Should work for any white footer 
@@ -308,13 +311,15 @@ for jj=1:length(Imgs)
         bw1 = bwareaopen(bw1, 100);
         
         % Run OCR to get find text corresponding to scale.
-        o1 = ocr(bw1, 'CharacterSet', '0123456789.unm');
+        o1 = ocr(bw1);%, 'CharacterSet', '0123456789.unm');
         Imgs(jj).ocr = o1;
-        disp(o1)
+        disp("o1: "+strip(string(o1.Text)))
+        
         
         % Filter for only relevant characters.
         f_chars = regexp(o1.Text, '[0123456789unm]');  % flag if characters relevant
         txt = o1.Text(f_chars);
+        disp("txt: "+string(txt))
         o1_bboxs = o1.CharacterBoundingBoxes(f_chars, :);
         
         % Set a flag for if u or μ was found; replace it. THIS WAS ADDED BY
@@ -334,11 +339,6 @@ for jj=1:length(Imgs)
             f_nm = 0;
             sc_end = where_micro;
         end
-        
-        disp("READOUT:");%WHY DONT I SEE READOUTS FOR OTHER TEXT
-        disp(txt);
-        disp(f_nm);
-        disp(sc_end);
         
         if ~isempty(sc_end) % if text found
             footer_found = 1; % mark that text has been found
@@ -403,7 +403,7 @@ for jj=1:length(Imgs)
         Imgs(jj).pixsize = NaN;  % return NaN if nothing found
     end
     
-    tools.textbar([jj, length(Imgs)]);
+    %tools.textbar([jj, length(Imgs)]);
 end
 
 pixsizes = [Imgs.pixsize];
