@@ -16,16 +16,18 @@ clear
 %imgs = {Imgs.cropped};                              % copy variables locally
 
 disp("Pixel sizes found: ")
-%disp(pixsizes)
+disp(pixsizes)
+disp("  ")
 
-for i=1:length(pixsizes)
-    if isnan(pixsizes(i))
-        disp(Imgs(i).fname)
-        %open(strcat('data/test_folder_1/',Imgs(i).fname))
+if any(isnan(pixsizes(:)))
+    disp("Scale detection failed on: ")
+    for i=1:length(pixsizes)
+        if isnan(pixsizes(i))
+            disp(Imgs(i).fname)
+            %open(strcat('data/test_folder_1/',Imgs(i).fname))
+        end
     end
 end
-
-return
 
 %% Try manually adding scale bar
 
