@@ -297,7 +297,7 @@ for jj=1:length(Imgs)
         % If no text, loop for white text instead of black.
         if nnz(bw1) / numel(bw1) < 0.01
             bw1 = ~im2bw(1 - double(Imgs(jj).raw) ./ ...
-                max(max(double(Imgs(jj).raw))), 0.08);
+                max(max(double(Imgs(jj).raw))), 0.04); % RICHARD: REDUCE THIS TO SEE WHITE ON WHITE BETTER. DEFAULT 0.08.
 
             se = strel('disk', 1);
             bw1 = imclose(bw1, se);
@@ -308,15 +308,37 @@ for jj=1:length(Imgs)
         bw1 = bwareaopen(bw1, 100);
         
         % Run OCR to get find text corresponding to scale.
-        o1 = ocr(bw1, 'CharacterSet', '0123456789nm');
+        o1 = ocr(bw1, 'CharacterSet', '0123456789.unm');
         Imgs(jj).ocr = o1;
+        disp(o1)
         
         % Filter for only relevant characters.
-        f_chars = regexp(o1.Text, '[0123456789nm]');  % flag if characters relevant
+        f_chars = regexp(o1.Text, '[0123456789unm]');  % flag if characters relevant
         txt = o1.Text(f_chars);
         o1_bboxs = o1.CharacterBoundingBoxes(f_chars, :);
         
-        sc_end = strfind(txt, 'nm') - 1;
+        % Set a flag for if u or μ was found; replace it. THIS WAS ADDED BY
+        % RICHARD.
+        where_um = strfind(txt, 'um') - 1;
+        where_micro = strfind(txt,'μm') - 1;
+        where_nano = strfind(txt, 'nm') - 1;
+        if ~isempty(where_nano) % nm found
+            f_nm = 1;
+            sc_end = where_nano;
+        end
+        if ~isempty(where_um) % um found
+            f_nm = 0;
+            sc_end = where_um;
+        end
+        if ~isempty(where_micro) % um found
+            f_nm = 0;
+            sc_end = where_micro;
+        end
+        
+        disp("READOUT:");%WHY DONT I SEE READOUTS FOR OTHER TEXT
+        disp(txt);
+        disp(f_nm);
+        disp(sc_end);
         
         if ~isempty(sc_end) % if text found
             footer_found = 1; % mark that text has been found
