@@ -143,8 +143,9 @@ disp('Looking for footers/scale:');
 % Outer loop allows for images with different footers/scale bars.
 for jj=1:length(Imgs)
     
-    disp("   ")
+    %disp("   ")
     disp("Working on image: "+string(jj))
+    %disp("Filename: "+string(Imgs(jj).fname));
     %pause(0.05)
     
     %== OPTION 1 =========================================================%
@@ -310,8 +311,9 @@ for jj=1:length(Imgs)
         % Remove any small regions below a certain number of pixels.
         bw1_no_scale_bar = bwareaopen(bw1, 30); % THIS USED TO BE 100
         bw1 = bwareaopen(bw1, 30); % THIS USED TO BE 100
+        bw1_clone = bwareaopen(bw1, 30);
         
-        % Attempt to chop out the scale bar, temporarily
+        % Attempt to chop out the scale bar, temporarily (added by Richard)
         white_in_row = [];
         for i = (1:size(bw1,1))
             white_in_row(i)=(sum(bw1(i,:)));
@@ -335,13 +337,13 @@ for jj=1:length(Imgs)
         txt = o1.Text(f_chars);
         txt = strrep(txt, 'l', '1'); % In testing, l misread as 1 was the one worth explicitly calling out
         %disp("txt: "+string(strip(txt)))
-        disp("Detected text: "+string(strip(txt)))
+        %disp("Detected text: "+string(strip(txt)))
         o1_bboxs = o1.CharacterBoundingBoxes(f_chars, :);
         
         if strip(txt)==""
-            disp("Oh no!!!")
-            imshow(bw1_no_scale_bar)
-            return
+            disp("Failed to read any text on the image: "+string(Imgs(jj).fname))
+            %imshow(bw1_no_scale_bar)
+            %return
         end
         
         % Set a flag for if u or μ was found; replace it. THIS WAS ADDED BY
@@ -356,6 +358,7 @@ for jj=1:length(Imgs)
             f_nm = 0;
             sc_end = where_um;
         end
+        % Return to original code
         
         if txt ~= "" % if text found
             footer_found = 1; % mark that text has been found
@@ -371,14 +374,28 @@ for jj=1:length(Imgs)
             ar = reshape(ar', [4, length(ar)/4])';
             ar = ar(:,3) ./ ar(:,4);  % arrive at aspect ratio
             [~, ar_max] = max(ar); len = rp(ar_max).BoundingBox(3);  % pixel length of scale bar
+            bar_start_x_coord = round(rp(ar_max).BoundingBox(1));
             Imgs(jj).pixsize = sc_length / len;
             
             % If given in micrometers, convert.
             if f_nm==0; Imgs(jj).pixsize = Imgs(jj).pixsize * 1e3; end
-
             
-            % NOTE: Show bw1 image to see the binary that should include 
-            % the overlaid text.
+            % Code that Richard added to save a diagnostic 
+            % Diagnostic prints what it thinks the scale bar text said &
+            % vertical lines where it thinks the scale bar ends were
+            bw1_clone(:,bar_start_x_coord)=255;
+            bw1_clone(:,bar_start_x_coord+len)=255;
+            RGB = insertText(uint8(255*bw1_clone),[bar_start_x_coord+10+len 50],"VALIDATION IMAGE","FontSize",50);
+            RGB = insertText(RGB,[bar_start_x_coord+10+len 150],"Detected text:","FontSize",50);
+            if f_nm==0
+                txt = string(sc_length)+" μm";
+            else
+                txt = string(sc_length)+" nm";
+            end
+            RGB = insertText(RGB,[bar_start_x_coord+10+len 250],txt,"FontSize",50);
+            imwrite(RGB,("validation/"+string(Imgs(jj).fname)));
+            % Back to the normal code
+
             
             
             % Use bounding boxes to replace the scale bar 
