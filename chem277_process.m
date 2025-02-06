@@ -64,7 +64,7 @@ end
 fnames=string({Imgs.fname});
 table_to_store = table(fnames',pixsizes');
 table_to_store.Properties.VariableNames = ["file_name","pixel_size"];
-writetable(table_to_store,"processed/cache_pixel_sizes.csv");
+writetable(table_to_store,"processed/cache_pixel_sizes_latest_run.csv");
 disp("Wrote pixel sizes to .csv as a backup.")
 
 %% Bail since I'm only testing the scale bar finding for now and I always
