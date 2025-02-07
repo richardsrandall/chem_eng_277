@@ -69,7 +69,7 @@ disp("Wrote pixel sizes to .csv as a backup.")
 
 %% Bail since I'm only testing the scale bar finding for now and I always
 % instinctively hit run-all instead of run-section :P 
-return %GET RID OF THIS LINE TO PROCEED WITH PROCESSING!!!!
+%return %GET RID OF THIS LINE TO PROCEED WITH PROCESSING!!!!
 
 %% Return values
 %pixsizes = [Imgs.pixsize];   % Shouldn't need this since it's stored
@@ -79,13 +79,39 @@ fname = {Imgs.fname};
 %% Do Kmeans, return segmented image
 % Notes: didnt work great on 346a
 imgs_binary = agg.seg_kmeans(imgs, pixsizes);
+
+%% Mess with imgs_binary
+for i = 1:length(pixsizes)
+    img = (cat(2,(cell2mat(imgs(i))),255*cell2mat(imgs_binary(i))));
+    imwrite(img,("check_object_detection/"+string(Imgs(i).fname)))
+end
+disp("Saved side-by-side black/white and greyscale imaged as a diagnostic.")
+
 %% Agglomerate analysis
 Aggs = agg.analyze_binary(imgs_binary, pixsizes, imgs, fname);
 
 %% Particle scale analysis
 Aggs = pp.pcm(Aggs); % apply pair correlation method
 
-%% Save the data
-tools.write_excel(Aggs, strcat('processed/all_pyrolysis/kmeans/process_results.xlsx'));
+%% Analyze aggregates and mess with imgs_binary
+agg_fnames = ({Aggs.fname});
+%disp(Aggs)
 
+for i = 1:length(pixsizes)
+    if ismember(Imgs(i).fname,agg_fnames)
+        %final_img = imread("processed/all_pyrolysis/kmeans/"+string(Imgs(i).fname));
+        img = 255*cell2mat(imgs_binary(i));
+        RGB = insertText(img,[50,100],"AGGREGATES FOUND","FontSize",50,"BoxColor","green");
+    else
+        img = (cat(2,(cell2mat(imgs(i))),255*cell2mat(imgs_binary(i))));
+        RGB = insertText(img,[50,100],"NO AGGREGATES","FontSize",50,"BoxColor","red");
+    end
+    imwrite(RGB,("check_object_detection/"+string(Imgs(i).fname)))
+end
+disp("Annotated side-by-side black/white and greyscale images that contain aggregates.")
+
+%% Save the data
+%tools.write_excel(Aggs, strcat('processed/test_1/kmeans/process_results.xlsx'));
+%tools.imwrite_agg(Aggs, 'processed/test_1/kmeans')
+tools.write_excel(Aggs, strcat('processed/all_pyrolysis/kmeans/process_results.xlsx'));
 tools.imwrite_agg(Aggs, 'processed/all_pyrolysis/kmeans')
