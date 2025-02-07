@@ -11,9 +11,9 @@ if ~exist('idx','var'); idx = []; end % image index for plotting
 if isempty(idx); idx = unique([Aggs.img_id]); end % plot all of the images
 
 % Exceptions if idx indicates many images
-if and(length(idx)>24, nargout<2) % plot a max. of 24 images (exception below)
-    idx = idx(1:24);
-end
+%if and(length(idx)>24, nargout<2) % plot a max. of 24 images (exception below)
+%    idx = idx(1:24);
+%end
 n_img = length(idx); % number of images to plot
 
 % Whether of not to plot image
@@ -98,6 +98,7 @@ for ii=1:n_img % loop through images
     %-- Plot circles and identify aggregates -----------------------------%
     for aa=idx_agg
         hold on;
+        try
 
         % Plot center of mass of projected aggregate
         plot(Aggs(aa).center_mass(2), ...
@@ -124,6 +125,8 @@ for ii=1:n_img % loop through images
                     'Color', [0.92,0.16,0.49], 'LineWidth', ...
                     0.75, 'EnhanceVisibility', false);
             end
+        end
+        catch
         end
         hold off;
     end

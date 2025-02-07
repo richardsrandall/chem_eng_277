@@ -81,11 +81,11 @@ fname = {Imgs.fname};
 imgs_binary = agg.seg_kmeans(imgs, pixsizes);
 
 %% Mess with imgs_binary
-for i = 1:length(pixsizes)
-    img = (cat(2,(cell2mat(imgs(i))),255*cell2mat(imgs_binary(i))));
-    imwrite(img,("check_object_detection/"+string(Imgs(i).fname)))
-end
-disp("Saved side-by-side black/white and greyscale imaged as a diagnostic.")
+%for i = 1:length(pixsizes)
+%    img = (cat(2,(cell2mat(imgs(i))),255*cell2mat(imgs_binary(i))));
+%    imwrite(img,("check_object_detection/"+string(Imgs(i).fname)))
+%end
+%disp("Saved side-by-side black/white and greyscale imaged as a diagnostic.")
 
 %% Agglomerate analysis
 Aggs = agg.analyze_binary(imgs_binary, pixsizes, imgs, fname);
@@ -93,25 +93,36 @@ Aggs = agg.analyze_binary(imgs_binary, pixsizes, imgs, fname);
 %% Particle scale analysis
 Aggs = pp.pcm(Aggs); % apply pair correlation method
 
+%% Save the data
+%tools.write_excel(Aggs, strcat('processed/test_1/kmeans/process_results.xlsx'));
+%tools.imwrite_agg(Aggs, 'processed/test_1/kmeans')
+tools.write_excel(Aggs, strcat('processed/all_pyrolysis/kmeans/process_results.xlsx'));
+tools.imwrite_agg(Aggs, 'processed/all_pyrolysis/kmeans')
+close all
+
 %% Analyze aggregates and mess with imgs_binary
 agg_fnames = ({Aggs.fname});
-%disp(Aggs)
+disp("Saving diagnostic images...")
 
 for i = 1:length(pixsizes)
     if ismember(Imgs(i).fname,agg_fnames)
-        %final_img = imread("processed/all_pyrolysis/kmeans/"+string(Imgs(i).fname));
+        if ~isfile("processed/all_pyrolysis/kmeans/"+string(Imgs(i).fname))
+            disp("FAILURE ON: "+string(Imgs(i).fname))
+            continue
+        end
+        final_img = imread("processed/all_pyrolysis/kmeans/"+string(Imgs(i).fname));
         img = 255*cell2mat(imgs_binary(i));
-        RGB = insertText(img,[50,100],"AGGREGATES FOUND","FontSize",50,"BoxColor","green");
+        RGB = insertText(img,[50,100],"     ","FontSize",50,"BoxColor","green");
+        size_original = size(img);
+        size_final = size(final_img);
+        final_img = final_img(:,round(size_final(2)*0.5-size_final(1)*0.5):round(size_final(2)*0.5+size_final(1)*0.5),:);
+        final_img_resized = imresize(final_img,[1024,1024]);
+        RGB = cat(2,final_img_resized,RGB);
+        RGB = insertText(RGB,[50,100],"AGGREGATES FOUND","FontSize",50,"BoxColor","green");
     else
         img = (cat(2,(cell2mat(imgs(i))),255*cell2mat(imgs_binary(i))));
         RGB = insertText(img,[50,100],"NO AGGREGATES","FontSize",50,"BoxColor","red");
     end
     imwrite(RGB,("check_object_detection/"+string(Imgs(i).fname)))
 end
-disp("Annotated side-by-side black/white and greyscale images that contain aggregates.")
-
-%% Save the data
-%tools.write_excel(Aggs, strcat('processed/test_1/kmeans/process_results.xlsx'));
-%tools.imwrite_agg(Aggs, 'processed/test_1/kmeans')
-tools.write_excel(Aggs, strcat('processed/all_pyrolysis/kmeans/process_results.xlsx'));
-tools.imwrite_agg(Aggs, 'processed/all_pyrolysis/kmeans')
+disp("Saved annotated side-by-side black/white and greyscale images that contain aggregates.")

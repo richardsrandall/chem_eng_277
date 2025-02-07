@@ -62,6 +62,7 @@ disp(' Characterizing aggregates:');
 tools.textbar([0, n_aggs]);
 
 for aa = 1:n_aggs % loop over each aggregate in the provided structure
+    try
     
     %== Step 1: Image preparation ========================================%
     pixsize = Aggs(aa).pixsize; % size of pixels in the image
@@ -203,6 +204,9 @@ for aa = 1:n_aggs % loop over each aggregate in the provided structure
             tools.textdone(2);
             tools.textbar(0); % reinitilize space for textbar
         end
+    end
+    
+    catch
     end
     
     tools.textbar([aa, n_aggs]);
