@@ -10,6 +10,14 @@ results\
 docs/figs/
 docs\figs\
 
+check_object_detection/
+check_object_detection\
+
+processed/all_pyrolysis/
+processed\all_pyrolysis/
+processed/all_pyrolysis\
+processed\all_pyrolysis\
+
 temp/
 temp\
 
