@@ -4,7 +4,7 @@ clear
 %% User Controls
 
 % loading/savingdata
-data_Dir_name           = 'all_pyrolysis_data'; % where to pull data from
+data_Dir_name           = 'best_raw_images'; % where to pull data from
 %data_Dir_name = 'cleaned_pyrolysis_data_1-5x_threshold';
                                          % OR: 'all_pyrolysis_data', 'test_folder_1'
                                          % also where to write Imgs and Excel results
@@ -12,8 +12,8 @@ data_Dir_name           = 'all_pyrolysis_data'; % where to pull data from
 % Writing New Data
 cache_pixel_sizes       = true;          % write csv of pixel sizes of latest run into processed/ directory
 checkObjDet_diagnostics = true;          % Save side-by-side black/white and greyscale imaged as a diagnostic
-writeImgsFolder         = 'all_pyrolysis_data'; % save img results under processed/
-writeExcelFolder        = 'all_pyrolysis_data'; % save excel results under processed/
+writeImgsFolder         = 'best_raw_images'; % save img results under processed/
+writeExcelFolder        = 'best_raw_images'; % save excel results under processed/
 
 
 %% Manually detect scale bars where needed

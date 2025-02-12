@@ -55,7 +55,7 @@ f_replace = 1;
 %-- Read in image --------------------------------------------------------%
 ln = length(n); % number of images
 
-disp('Reading files:');
+%disp('Reading files:');
 %tools.textbar([0, ln]);
 for ii=ln:-1:1 % reverse order to pre-allocate
     Imgs(ii).raw = imread([Imgs(ii).folder, Imgs(ii).fname]);
@@ -138,13 +138,13 @@ end
 function [Imgs, pixsizes] = detect_footer_scale(Imgs, f_replace)
 
 disp('Looking for footers/scale:');
-%tools.textbar([0, length(Imgs)]);
+tools.textbar([0, length(Imgs)]);
 
 % Outer loop allows for images with different footers/scale bars.
 for jj=1:length(Imgs)
     
     %disp("   ")
-    disp("Working on image: "+string(jj))
+    %disp("Working on image: "+string(jj))
     %disp("Filename: "+string(Imgs(jj).fname));
     %pause(0.05)
     
@@ -437,7 +437,7 @@ for jj=1:length(Imgs)
         Imgs(jj).pixsize = NaN;  % return NaN if nothing found
     end
     
-    %tools.textbar([jj, length(Imgs)]);
+    tools.textbar([jj, length(Imgs)]);
 end
 
 pixsizes = [Imgs.pixsize];
