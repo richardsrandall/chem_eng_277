@@ -4,15 +4,16 @@ clear
 %% User Controls
 
 % loading/savingdata
-data_Dir_name           = 'best_images'; % where to pull data from
+data_Dir_name           = 'all_pyrolysis_data'; % where to pull data from
+%data_Dir_name = 'cleaned_pyrolysis_data_1-5x_threshold';
                                          % OR: 'all_pyrolysis_data', 'test_folder_1'
                                          % also where to write Imgs and Excel results
 
 % Writing New Data
 cache_pixel_sizes       = true;          % write csv of pixel sizes of latest run into processed/ directory
 checkObjDet_diagnostics = true;          % Save side-by-side black/white and greyscale imaged as a diagnostic
-writeImgsFolder         = 'best_images'; % save img results under processed/
-writeExcelFolder        = 'best_images'; % save excel results under processed/
+writeImgsFolder         = 'all_pyrolysis_data'; % save img results under processed/
+writeExcelFolder        = 'all_pyrolysis_data'; % save excel results under processed/
 
 
 %% Manually detect scale bars where needed
@@ -115,13 +116,14 @@ fname = {Imgs.fname};
 imgs_binary = agg.seg_kmeans(imgs, pixsizes);
 
 %% Mess with imgs_binary
-if checkObjDet_diagnostics
-    for i = 1:length(pixsizes)
-       img = (cat(2,(cell2mat(imgs(i))),255*cell2mat(imgs_binary(i))));
-       imwrite(img,("check_object_detection/"+string(Imgs(i).fname)))
-    end
-    disp("Saved side-by-side black/white and greyscale imaged as a diagnostic.")
-end
+%if checkObjDet_diagnostics
+%     for i = 1:length(pixsizes)
+%        img = (cat(2,(cell2mat(imgs(i))),255*cell2mat(imgs_binary(i))));
+%        imwrite(img,("check_object_detection/"+string(Imgs(i).fname)))
+%     end
+%     disp("Saved side-by-side black/white and greyscale imaged as a diagnostic.")
+% end
+
 %% Agglomerate analysis
 Aggs = agg.analyze_binary(imgs_binary, pixsizes, imgs, fname);
 
@@ -129,9 +131,9 @@ Aggs = agg.analyze_binary(imgs_binary, pixsizes, imgs, fname);
 Aggs = pp.pcm(Aggs); % apply pair correlation method
 
 %% Save the data in processed folder
-tools.write_excel(Aggs, strcat(sprintf('processed/%s/kmeans/process_results.xlsx',data_Dir_name)));
+%tools.write_excel(Aggs, strcat(sprintf('processed/%s/kmeans/process_results.xlsx',data_Dir_name)));
 tools.imwrite_agg(Aggs, sprintf('processed/%s/kmeans',data_Dir_name))
-close all
+%close all
 
 %% Analyze aggregates and mess with imgs_binary
 agg_fnames = ({Aggs.fname});            % filename associated with each aggregate
@@ -142,6 +144,8 @@ disp("Saving diagnostic images...")
 for i = 1:length(pixsizes)
     if ismember(Imgs(i).fname,agg_fnames)                       % if no, then current image is NOT in agg_fnames
         loc = sprintf("processed/%s/kmeans/",data_Dir_name);
+        og_img = imread((location+"/"+string(Imgs(i).fname)));
+        %imwrite(og_img,("data/cleaned_pyrolysis_data_1-5x_threshold/"+string(Imgs(i).fname))); % This is our way of only including images that have aggregates
         if ~isfile(loc + string(Imgs(i).fname))
             disp("FAILURE ON: "+string(Imgs(i).fname))
             continue

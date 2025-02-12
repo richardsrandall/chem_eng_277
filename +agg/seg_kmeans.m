@@ -194,7 +194,11 @@ for ii=1:n
     end
     
     lvl4 = lvl3(lvl4(1)); % use the first case found in preceding line
-    i2b = ~im2bw(i1, lvl2 * lvl4); % binary at a fraction above Otsu threshold
+    new_threshold = lvl2*lvl4*1.8; %RICHARD MODIFICATION - OVERRIDE TO AVOID SPURIOUSLY INCLUDING BACKGROUND
+    if new_threshold>1.0
+        new_threshold=1;
+    end
+    i2b = ~im2bw(i1, new_threshold); % binary at a fraction above Otsu threshold
     
     % Close the higher threshold image 
     % to remove noisy points now included in binary.
