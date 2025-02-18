@@ -1,19 +1,26 @@
 clc
 clear
 
+% Gibson Notes
+% (02/17)
+%   - Remove low temperature images, ones that are too zoomed/grainy.
+%   - Diagnostic check_obj_detection ran but didnt save any images?
+
 %% User Controls
 
 % loading/savingdata
-data_Dir_name           = 'all_pyrolysis_data'; % where to pull data from
-%data_Dir_name = 'cleaned_pyrolysis_data_1-5x_threshold';
+% data_Dir_name           = 'all_pyrolysis_data'; % where to pull data from
+data_Dir_name = 'cleaned_pyrolysis_data_1-5x_threshold';
                                          % OR: 'all_pyrolysis_data', 'test_folder_1'
                                          % also where to write Imgs and Excel results
 
 % Writing New Data
 cache_pixel_sizes       = true;          % write csv of pixel sizes of latest run into processed/ directory
 checkObjDet_diagnostics = true;          % Save side-by-side black/white and greyscale imaged as a diagnostic
-writeImgsFolder         = 'all_pyrolysis_data'; % save img results under processed/
-writeExcelFolder        = 'all_pyrolysis_data'; % save excel results under processed/
+
+% Old / Unused?
+% writeImgsFolder         = 'cleaned_pyrolysis_data_1-5x_threshold'; % save img results under processed/
+% writeExcelFolder        = 'cleaned_pyrolysis_data_1-5x_threshold'; % save excel results under processed/
 
 
 %% Manually detect scale bars where needed
@@ -131,7 +138,7 @@ Aggs = agg.analyze_binary(imgs_binary, pixsizes, imgs, fname);
 Aggs = pp.pcm(Aggs); % apply pair correlation method
 
 %% Save the data in processed folder
-%tools.write_excel(Aggs, strcat(sprintf('processed/%s/kmeans/process_results.xlsx',data_Dir_name)));
+tools.write_excel(Aggs, strcat(sprintf('processed/%s/kmeans/process_results.xlsx',data_Dir_name)));
 tools.imwrite_agg(Aggs, sprintf('processed/%s/kmeans',data_Dir_name))
 %close all
 
