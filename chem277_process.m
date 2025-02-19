@@ -1,6 +1,11 @@
 clc
 clear
 
+% Gibson Notes
+% (02/17)
+%   - Remove low temperature images, ones that are too zoomed/grainy.
+%   - Diagnostic check_obj_detection ran but didnt save any images?
+
 %% User Controls
 
 % loading/savingdata
@@ -131,7 +136,7 @@ Aggs = agg.analyze_binary(imgs_binary, pixsizes, imgs, fname);
 Aggs = pp.pcm(Aggs); % apply pair correlation method
 
 %% Save the data in processed folder
-%tools.write_excel(Aggs, strcat(sprintf('processed/%s/kmeans/process_results.xlsx',data_Dir_name)));
+tools.write_excel(Aggs, strcat(sprintf('processed/%s/kmeans/process_results.xlsx',data_Dir_name)));
 tools.imwrite_agg(Aggs, sprintf('processed/%s/kmeans',data_Dir_name))
 %close all
 
