@@ -194,10 +194,11 @@ for ii=1:n
     end
     
     lvl4 = lvl3(lvl4(1)); % use the first case found in preceding line
-    new_threshold = lvl2*lvl4*1.8; %RICHARD MODIFICATION - OVERRIDE TO AVOID SPURIOUSLY INCLUDING BACKGROUND
-    if new_threshold>1.0
-        new_threshold=1;
-    end
+    %new_threshold = lvl2*lvl4*1.5; %RICHARD MODIFICATION - OVERRIDE TO AVOID SPURIOUSLY INCLUDING BACKGROUND
+    %if new_threshold>1.0
+    %    new_threshold=0.9;
+    %end
+    new_threshold=lvl2*lvl4;
     i2b = ~im2bw(i1, new_threshold); % binary at a fraction above Otsu threshold
     
     % Close the higher threshold image 
@@ -218,13 +219,37 @@ for ii=1:n
     end
     i5 = imgaussfilt(im2uint8(i5.*255), 3.75 * opts.morphsc);
     
+    
     tools.textbar([(ii-1)+0.82, n]); % partial textbar update
     
     
 
     %-- Combine feature set ----------------------------------------------%
-    feature_set{ii} = single(cat(3, ...
+    
+    % RICHARD CODE HERE
+    s = size(i12); % Size of the whole image
+    sbh = 150; % SCALE BAR HEIGHT IN PIXELS
+    i12(:,1:5)=0;
+    i12(1:5,:)=0;
+    i12(s(1)-sbh:s(1),:)=0;
+    i12(:,s(2)-5:s(2))=0;
+    i5(:,1:5)=0;
+    i5(1:5,:)=0;
+    i5(s(1)-5:s(1),:)=0;
+    i5(:,s(2)-5:s(2))=0;
+    img_denoise(:,1:5)=0;
+    img_denoise(1:5,:)=0;
+    img_denoise(s(1)-5:s(1),:)=0;
+    img_denoise(:,s(2)-5:s(2))=0;
+    % END RICHARD
+    
+    combined = single(cat(3, ...
         i12, i5, img_denoise));
+    %if ii==1 % ADJUST THIS TO STOP ON A CERTAIN IMAGE
+    %    imshow(combined)
+    %    error("DIAGNOSTIC STOP POINT")
+    %end
+    feature_set{ii}=combined;
     
     
     
