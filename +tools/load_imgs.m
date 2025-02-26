@@ -393,7 +393,7 @@ for jj=1:length(Imgs)
                 txt = string(sc_length)+" nm";
             end
             RGB = insertText(RGB,[bar_start_x_coord+10+len 250],txt,"FontSize",50);
-            imwrite(RGB,("validation/"+string(Imgs(jj).fname)));
+            imwrite(RGB,("validate_scale_bar_detection/"+string(Imgs(jj).fname)));
             % Back to the normal code
 
             

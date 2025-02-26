@@ -1,0 +1,16 @@
+
+Notes on the workflow for ChemE 277:
+
+- We've gotten rid of most of the built-in 'main' Matlab scripts to reduce clutter.
+- There are now 4 main files, chem277_...
+    > validation_process: run kmeans on the validation images
+    > validation_postprocess: apply exclusions, generate histograms,
+            and compare to Gibson's manually labeled results on validation data
+    > all_data_process: run kmeans on all of the images
+    > all_data_postprocess: apply exclusions, generate histograms on all data
+
+- Diagnostic files that get generated along the way:
+    > validate_scale_bar_detection: quickly check that OCR and SB detection is behaving
+    > validate_object_detection: check how well aggregate and primary particle detection are working
+
+- Folders within the 'data' folder (rename to TEM_data?): 
