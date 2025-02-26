@@ -42,7 +42,7 @@ override_scale("c3_344b_2203K_4.9atm_0026.tif")=0.3054;
 
 %% Load & Auto-detect scale bars on all images except those in the above map.
 location = sprintf('data/%s',data_Dir_name);
-delete('validate_scale_bar_detection\*') % Empty out the validation contents
+delete('validate_scale_bar_detection/*') % Empty out the validation contents
 [Imgs, imgs, pixsizes] = tools.load_imgs(location);
 
 % Imgs = 1 x nImgs struct with 6 fields

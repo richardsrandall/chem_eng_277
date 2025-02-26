@@ -13,4 +13,7 @@ Notes on the workflow for ChemE 277:
     > validate_scale_bar_detection: quickly check that OCR and SB detection is behaving
     > validate_object_detection: check how well aggregate and primary particle detection are working
 
+- Added 'chem277_empty_output_folders' to purge large images before Git pushes
+
 - Folders within the 'data' folder (rename to TEM_data?): 
+    > (TBD)
