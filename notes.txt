@@ -9,9 +9,13 @@ Notes on the workflow for ChemE 277:
     > all_data_process: run kmeans on all of the images
     > all_data_postprocess: apply exclusions, generate histograms on all data
 
+- We auto-detect the scale bars, then manually override the ones that are wrong
+
 - Diagnostic files that get generated along the way:
     > validate_scale_bar_detection: quickly check that OCR and SB detection is behaving
     > validate_object_detection: check how well aggregate and primary particle detection are working
+
+- We auto-detect the aggregates and primary particles, then manually reject the bad ones
 
 - Added 'chem277_empty_output_folders' to purge large images before Git pushes
 

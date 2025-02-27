@@ -4,27 +4,26 @@ close all
 
 %% User Controls
 
-% loading/savingdata
-data_Dir_name           = 'test_folder_1'; % where to pull data from
-%data_Dir_name = 'cleaned_pyrolysis_data_1-5x_threshold';
-                                         % OR: 'all_pyrolysis_data', 'test_folder_1'
-                                         % also where to write Imgs and Excel results
+% Enter the name of the folder we full data from AND write it to
+%data_dir_name           = 'validation_data';
+data_dir_name           = 'small_validation_data';
 
 % Writing New Data
 cache_pixel_sizes       = true;          % write csv of pixel sizes of latest run into processed/ directory
 checkObjDet_diagnostics = true;          % Save side-by-side black/white and greyscale imaged as a diagnostic
-writeImgsFolder         = 'best_raw_images'; % save img results under processed/
-writeExcelFolder        = 'best_raw_images'; % save excel results under processed/
 
+%% Empty out the validation image folders
+delete('validate_scale_bar_detection/*')
+delete('validate_object_detection/*')
 
 %% Manually detect scale bars where needed
 % You only need to do this once, then the results are stored in the dict in
 % the next section.
-%which_image = "data/all_pyrolysis_data/c3_346a_2247K_4.5atm_0023.tif";
-%which_image = "data/all_pyrolysis_data/c3_347a_2132K_4.2atm_0001.tif";
-%which_image = "data/all_pyrolysis_data/c3_348b_1875K_4.5atm_0001.tif";
-%which_image = "data/all_pyrolysis_data/c3_344b_2203K_4.9atm_0005.tif";
-%which_image = "data/all_pyrolysis_data/c3_344b_2203K_4.9atm_0026.tif";
+%which_image = "raw_tem_data/all_pyrolysis_data/c3_346a_2247K_4.5atm_0023.tif";
+%which_image = "raw_tem_data/all_pyrolysis_data/c3_347a_2132K_4.2atm_0001.tif";
+%which_image = "raw_tem_data/all_pyrolysis_data/c3_348b_1875K_4.5atm_0001.tif";
+%which_image = "raw_tem_data/all_pyrolysis_data/c3_344b_2203K_4.9atm_0005.tif";
+%which_image = "raw_tem_data/all_pyrolysis_data/c3_344b_2203K_4.9atm_0026.tif";
 
 %disp("Output from manual UI scale bar identification:")
 %disp(tools.ui_scale_bar(imread(which_image)));
@@ -41,7 +40,7 @@ override_scale("c3_344b_2203K_4.9atm_0005.tif")=0.3055;
 override_scale("c3_344b_2203K_4.9atm_0026.tif")=0.3054;
 
 %% Load & Auto-detect scale bars on all images except those in the above map.
-location = sprintf('data/%s',data_Dir_name);
+location = sprintf('raw_tem_data/%s',data_dir_name);
 delete('validate_scale_bar_detection/*') % Empty out the validation contents
 [Imgs, imgs, pixsizes] = tools.load_imgs(location);
 
@@ -55,11 +54,8 @@ delete('validate_scale_bar_detection/*') % Empty out the validation contents
 % pixsizes = 1 x nImgs double. each entry containing nm/px calibration
 
 disp("Autodetection of scale bars finished running successfully.")
-%imgs = {Imgs.cropped};                              % copy variables locally
-
 %disp("Pixel sizes found: ")
 %disp(pixsizes)
-%disp("  ")
 
 %% Override the detection results where necessary
 for i=1:length(pixsizes)
@@ -92,31 +88,13 @@ if cache_pixel_sizes
     fnames=string({Imgs.fname});
     table_to_store = table(fnames',pixsizes');
     table_to_store.Properties.VariableNames = ["file_name","pixel_size"];
-    writetable(table_to_store,"processed/cache_pixel_sizes_latest_run.csv");
+    writetable(table_to_store,strcat(sprintf('processed_data/%s/cache_pixel_sizes.csv',data_dir_name)));
     disp("Wrote pixel sizes to .csv as a backup.")
 end
-
-%% Bail since I'm only testing the scale bar finding for now and I always
-% instinctively hit run-all instead of run-section :P 
-%return %GET RID OF THIS LINE TO PROCEED WITH PROCESSING!!!!
-
-%% Return values
-%pixsizes = [Imgs.pixsize];   % Shouldn't need this since it's stored
-%before.
 fname = {Imgs.fname};
 
 %% Do Kmeans, return segmented image
-% Notes: didnt work great on 346a
 imgs_binary = agg.seg_kmeans(imgs, pixsizes);
-
-%% Mess with imgs_binary
-%if checkObjDet_diagnostics
-%     for i = 1:length(pixsizes)
-%        img = (cat(2,(cell2mat(imgs(i))),255*cell2mat(imgs_binary(i))));
-%        imwrite(img,("check_object_detection/"+string(Imgs(i).fname)))
-%     end
-%     disp("Saved side-by-side black/white and greyscale imaged as a diagnostic.")
-% end
 
 %% Agglomerate analysis
 Aggs = agg.analyze_binary(imgs_binary, pixsizes, imgs, fname);
@@ -124,20 +102,31 @@ Aggs = agg.analyze_binary(imgs_binary, pixsizes, imgs, fname);
 %% Particle scale analysis
 Aggs = pp.pcm(Aggs); % apply pair correlation method
 
+%% Optional breakpoint
+% Sometimes, Matlab will infuriatingly crash while executing the next
+% section. Uncomment this return when you relaunch Matlab to run everything
+% up to here, then skip the next section and go straight to the last one.
+% This seems to be due to a bug in the underlying ATEMS code.
+%return
+
 %% Save the data in processed folder
-tools.write_excel(Aggs, strcat(sprintf('processed/%s/kmeans/process_results.xlsx',data_Dir_name)));
-tools.imwrite_agg(Aggs, sprintf('processed/%s/kmeans',data_Dir_name))
-%close all
+
+delete(sprintf('processed_data/%s/kmeans_imgs/*',data_dir_name))
+tools.write_excel(Aggs, strcat(sprintf('processed_data/%s/kmeans_results.xlsx',data_dir_name)));
+tools.imwrite_agg(Aggs, sprintf('processed_data/%s/kmeans_imgs/',data_dir_name))
+% Putting a 'close all' here causes it to beach-ball and crash for some
+% reason.
 
 %% Analyze aggregates and mess with imgs_binary
 agg_fnames = ({Aggs.fname});            % filename associated with each aggregate
 disp("Saving diagnostic images...")
+delete('validate_object_detection/*') % Empty out the validation contents
 
 % Loop over each image, write a side-by-side actual and binary. Label with
 % Green or Red box. Red if no aggregates found by algorithm
 for i = 1:length(pixsizes)
     if ismember(Imgs(i).fname,agg_fnames)                       % if no, then current image is NOT in agg_fnames
-        loc = sprintf("processed/%s/kmeans/",data_Dir_name);
+        loc = sprintf("processed_data/%s/kmeans_imgs/",data_dir_name);
         og_img = imread((location+"/"+string(Imgs(i).fname)));
         %imwrite(og_img,("data/cleaned_pyrolysis_data_1-5x_threshold/"+string(Imgs(i).fname))); % This is our way of only including images that have aggregates
         if ~isfile(loc + string(Imgs(i).fname))
@@ -160,3 +149,5 @@ for i = 1:length(pixsizes)
     imwrite(RGB,("validate_object_detection/"+string(Imgs(i).fname)))
 end
 disp("Saved annotated side-by-side black/white and greyscale images that contain aggregates.")
+
+close all
