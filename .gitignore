@@ -19,6 +19,9 @@ validate_object_detection\
 validate_scale_bar_detection/
 validate_scale_bar_detection\
 
+validate_primary_particle_detection/
+validate_primary_particle_detection\
+
 temp/
 temp\
 

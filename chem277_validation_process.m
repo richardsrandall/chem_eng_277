@@ -6,7 +6,8 @@ close all
 
 % Enter the name of the folder we full data from AND write it to
 %data_dir_name           = 'validation_data';
-data_dir_name           = 'small_validation_data';
+%data_dir_name           = 'small_validation_data';
+data_dir_name            = 'all_pyrolysis_data';
 
 % Writing New Data
 cache_pixel_sizes       = true;          % write csv of pixel sizes of latest run into processed/ directory
