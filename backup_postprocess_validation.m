@@ -1,20 +1,15 @@
-% Post-Process atems results -- with validation from manual data
+% Post-Process atems results
 
 % This code reads the atems-processed data, reads the corresponding manually-processed data, 
 % and plots/saves histograms that let us compare them.
-% It only works on the 'validation data' folder, since those images are the
-% ones for which Gibson manually recorded the primary particle sizes.
 
 clear all; close all; clc
-%% (1) User inputs
+%% (1) User inptus
 
 % For analysis
+exclude_1875K           = true;    % MUST BE TRUE FOR NOW. Set to true to exclude 1875K data, 
 filterBy_dpMin          = true;    % Remove all entries below dp_min
 dp_min                  =  9;      % nm
-temperatures_to_show = [2132, 2203, 2247];
-% 1984K, 2322K, and 1875K have too little usable data after manual
-% filtering, so we're excluding them here. You can add 1984 to the list to
-% see what some messy data look like.
 
 % For Binning
 % Manual Binning ---------------------- (other options 'fd' or 'scotts')
@@ -25,15 +20,16 @@ edge_max                = 40;
 preset_edges            = linspace(edge_min, edge_max, n_edges); % goes into histcounts() to return counts and edges
 
 % For plotting
-show_kept_images = false; %Quickly shows all images whose particles/aggregates are being analyzed, to make sure exclusions worked
+show_kept_images = true;
 save_histograms = true;
 weight_by_agg_area = false;
 overlap = true;
-plots_to_keep_open = []; % One can specify plots by the figure number - e.g., only keep Figs 1 and 2 open.
-open_all_plots = true; % Overrides plots_to_keep_open
-save_plots_mode = false; % Closes all figures at the end if all you wanted to do was save the plots
+open_all_plots = false;
+plots_to_keep_open = [1,2,3,4];
+save_plots_mode = false;
 
 % File locations
+%data_dir_name = 'small_validation_data';
 data_dir_name = 'validation_data';
 save_subfolder='default';
 save_dir_name = strcat([data_dir_name,'/',save_subfolder,'/']);
@@ -70,12 +66,11 @@ for i = 1:height(data_atems)
     P5_str = fname_str(15:17);
     T5s_all_atems(i) = str2double(T5_str);    
     P5s_all_atems(i) = str2double(P5_str);
-    %disp(T5_str)
+    % disp(T5_str)
 end
 data_atems.Temperature = T5s_all_atems;       % Assign these values to the data_atems table so we can sort by T5
 data_atems.Pressure    = P5s_all_atems;
 T5s_unique_atems = unique(T5s_all_atems);
-exclude_1875K           = true;    % MUST BE TRUE FOR NOW. Set to true to exclude 1875K data, 
 if exclude_1875K                             % Option to exclude 1875K
     T5s_unique_atems = T5s_unique_atems(T5s_unique_atems  ~= 1875);
     data_atems = data_atems(data_atems.Temperature ~= 1875, :);
@@ -103,15 +98,15 @@ pdf_logNorm_atems      = zeros(length(x_range), 5);      % prob density function
 dp_vals_atems       = nan(height(data_atems(:,1)), 5);  % for  dp's
 N_agg_tot_atems     = zeros(1,5);                       %  total # of aggs id'd per T5
 
-%%
-
-% LOAD PRIMARY PARTICLE DATA
-full_path_atems = strcat(sprintf('processed_data/%s/all_primary_particles.xlsx',data_dir_name));
-data_atems = readtable(full_path_atems);
-data_atems.Properties.VariableNames = ["temp","diameter","fname"];
-data_atems.dp = str2double(data_atems.diameter);
-data_atems.area = data_atems.dp*0+1; % Normalizing this will do nothing
-data_atems.Temperature = str2double(data_atems.temp);
+%% OVERRIDE THE ATEMS DATA
+if true
+    full_path_atems = strcat(sprintf('processed_data/%s/all_primary_particles.xlsx',data_dir_name));
+    data_atems = readtable(full_path_atems);
+    data_atems.Properties.VariableNames = ["temp","diameter","fname"];
+    data_atems.dp = str2double(data_atems.diameter);
+    data_atems.area = data_atems.dp*0+1; % Normalizing this will do nothing
+    data_atems.Temperature = str2double(data_atems.temp);
+end
 
 % Load the manual override data
 full_path_manual_exclusions = sprintf("processed_data/%s/manual_validation.csv",data_dir_name);
@@ -123,16 +118,13 @@ manually_excluded_imgs = manual_exclusions(manual_exclusions.status ~= "y", :).f
 % Filter by pixsize
 pixsize_excluded_imgs = original_data_atems(original_data_atems.pixsize>1.0, :).fname;
 
-%Apply exclusions to the primary particle data and print some
-%diagnostics...
+%disp(excluded_imgs);
 fprintf("Images with aggregates: %d\n",length(unique(data_atems.fname)));
 data_atems = data_atems(~ismember(data_atems.fname, manually_excluded_imgs),:);
 fprintf("Images after manual exclusions: %d\n",length(unique(data_atems.fname)));
 data_atems = data_atems(~ismember(data_atems.fname, pixsize_excluded_imgs),:);
+%original_data_atems = original_data_atems(~ismember(original_data_atems.fname, pixsize_excluded_imgs),:);
 fprintf("Images after pixel size exclusions: %d\n",length(unique(data_atems.fname)));
-
-%Apply exclusions to the aggregate data
-original_data_atems = original_data_atems(~ismember(original_data_atems.fname, manually_excluded_imgs),:);
 
 % Filter based on image scale and/or manual overrides
 %data_atems = data_atems(data_atems.Temperature ~= 1875, :);
@@ -148,29 +140,28 @@ pause(0.5)
 close all
 
 
-%% Loop over each temperature, compute and plot things (histograms, log-normal fits)
+%% Loop over each T5, compute things
+% - a histogram
+% - fit a lognormal, 
+% - plot both
+% - compute geometric avg dp and std dev
+% - store the number of agglomerates or particles measured 
 
-close all
+% Prepare figures for overlay later
+%figure_combined_dp = figure; hold on;
+%figure_combined_Rg = figure; hold on;
+
 % Loop over each temperature
 for i = 1:num_conditions
     % By Hand data ------------------------------------------
     T5_hand = T5s_hand(i);
-    if ~ismember(T5_hand, temperatures_to_show)
-        continue
-    end
     temp_data_hand = data_hand(:, i);               % Extract column of dp data
     dp_temp_hand = temp_data_hand(~isnan(temp_data_hand)); 
     N_pp_tot_hand(i) = length(dp_temp_hand);        % number of pp measured
     % ATEMS Data -------------------------------------------
     T5_atems = T5s_unique_atems(i);
     temp_data_atems = data_atems(data_atems.Temperature == T5_atems, :);
-    if (length(temp_data_atems.Temperature))==0 % Too few data to plot this one!
-        fprintf("Skipping plots of Temp = %dK because there are too few PP's/aggregates.\n",T5_atems);
-        continue
-    else
-        fprintf("Plotting Temp = %dK...\n",T5_atems);
-    end
-    
+   
     % FILTERING ATEMS DATA
     % (e.g., dp limits or filename exclusions)
     % FILTER 1: pp less than XX  nm are most definitely noise
@@ -183,6 +174,15 @@ for i = 1:num_conditions
         dp_temp_atems = temp_data_atems.dp;
         N_agg_tot_atems(i) = length(dp_temp_atems);   
     end
+    % WEIGHT BY AREA
+    weights = round(temp_data_atems.area/100);
+    weighted_hist_data = [];
+    for q=1:length(weights)
+        add_me = dp_temp_atems(q)*ones(1,weights(q));
+        weighted_hist_data = [add_me, weighted_hist_data];
+    end
+    %disp(T5_atems+", "+length(weighted_hist_data))
+    
     
     % (a) Geometric Mean & SD
     geo_means_hand(i) = geomean(dp_temp_hand);          % does same thing as exp(mean(log(dp)))
@@ -203,8 +203,35 @@ for i = 1:num_conditions
     pd_atems      = fitdist(dp_temp_atems, 'Lognormal');         % RETURNS MU, SIGMA params for lognormal dist 
     mu_fit_atems  = pd_atems.mu;
     pdf_logNorm_atems(:,i) = pdf(pd_atems, x_range);             % produce pdf over range of dp vals prespecified
+    
+    % % (c) Compute the standard format lognormal distribution
+    % % The first pdf_vals provides values per unit of diameter. 
+    % % But, in log-space, 
+    % % we want values per unit logarithm of diameter, so we divide by dlog_dp.
+    % dN_dlog_dp(:,i) = pdf_vals(:,i) ./ dlog_dp; % Convert PDF to log-scale format
+    % % Compute dN/dlog(dp) / Ntot
+    % % Normalize approach 1 - by integral over domain
+    % dN_dlog_dp_norm(:,i) = dN_dlog_dp(:,i) / trapz(dp_log, dN_dlog_dp(:,i)); % Normalize by total area under curve
+    % % Normalize approach 2 - Count - based normalization
+    % % NOTE: This approach does not integrate to zero . . . .
+    % % can be useful if you want to compare different datasets that may have varying total particle counts.
+    % N_tot = N_tots(i);
+    % dN_dlog_dp_norm2(:,i) = dN_dlog_dp(:,i) / N_tot;
+    % % NOTE: norm2 APPROACH does not integrate to zero . . 
+    % % ORRRR NEW APPROACH
+    % % COMPUTE PSDF with dN/dlog(dp)/Ntot vs dp as axes
+    % % Try different edges 
+    % nedges = 15;
+    % edges = linspace(5, 40, nedges);
+    % [counts, edges] = histcounts(dp_temp, edges);
+    % bin_centers = (edges(1:end-1) + edges(2:end)) / 2;
+    % % Convert to dN/dlog(dp)/Ntot
+    % bin_widths_log = log10(edges(2:end)) - log10(edges(1:end-1));
+    % PSDF = counts ./ bin_widths_log / sum(counts);
 
-    % (c) Plotting Individual histograms and lognormal fit
+    % PLOTTING below this line ----------------------------------------
+
+    % (d) Plotting Individual histograms and lognormal fit
     % Notes:
     % - should control the bin size, for consistency across temperature
     % Data by Hand ------------------------------------------------------
@@ -232,11 +259,15 @@ for i = 1:num_conditions
         hold on;
     end
     %figure("Name",sprintf("Hist.ATEMS: %dK",T5_atems));
-    which_hist_data = dp_temp_atems;
+    if weight_by_agg_area
+        which_hist_data = weighted_hist_data;
+    else
+        which_hist_data = dp_temp_atems;
+    end
     histogram(which_hist_data, edges,'FaceColor',	"#D95319",'Normalization', 'pdf','FaceAlpha',0.6); % Histogram of data
     plot(x_range, pdf_logNorm_atems(:,i), 'r-', 'LineWidth', 2);              % Plot fitted log-normal curve  
     %title(['ATEMS: ', num2str(T5_atems),' K. N_agg: ', num2str(N_agg_tot_atems(i))]);
-    xlabel('Primary Particle Diameter [nm]');
+    xlabel('dp [nm]');
     ylabel('Probability Density');
     if ~overlap
         lg_atems = legend('ATEMS Data', 'Log-Normal ATEMS Fit');
@@ -246,17 +277,19 @@ for i = 1:num_conditions
     hold off;
     
     figure("Name",sprintf("AGGREGATES: %dK",T5_hand));
-    agg_diams = (original_data_atems(original_data_atems.Temperature==T5_hand,:).da);
-    log_agg_diams  = log(agg_diams); mu_agg_diams = mean(log_agg_diams);
-    fit_agg_diams      = fitdist(agg_diams, 'Lognormal');  
-    histogram(agg_diams,'FaceColor',"#CF9FFF",'Normalization', 'pdf','FaceAlpha',0.6);
-    hold on;
-    xvs = linspace(10,max(agg_diams),200);
-    plot(xvs, pdf(fit_agg_diams, xvs), 'm-', 'LineWidth', 2);
-    legend('Aggregate Size Data', 'Log-Normal Fit');
-    xlabel('Aggregate Diameter [nm]');
-    ylabel('Probability Density');
-    hold off;
+    histogram(original_data_atems(original_data_atems.Temperature==T5_hand,:).da);
+
+    % % PLOT PSDF with dN/dlog(dp)/Ntot vs dp as axes
+    % figure(figure_combined_dp);
+    % plot(bin_centers, PSDF, 'DisplayName', [num2str(temp), 'K']);
+    % set(gca, 'XScale', 'log');
+    % xlabel('dp (nm)');
+    % ylabel('dN/dlog(dp)/Ntot');
+    % title('PSDF - dp for All Temperatures');
+    % legend show;
+    % 
+    % % Store other data I want for plotting later
+    % dp_vals(1:length(temp_data_hand),i)  = temp_data_hand;      % for subplots of historgrams
 
 end
 
@@ -313,3 +346,60 @@ if save_plots_mode
 end
 
 
+%% HISTOGRAMS NOTES
+% Questions
+%   - Am I working with particle sizes spanning orders of magnitude? → Use log bins and log x-axis.
+%   - Do I want a smooth lognormal curve to overlay on a log histogram? → Use logspace() for the curve.
+%   - Should I log-transform my particle size data before calling pdf()? → No. Pass raw dp values into pdf().
+% BINNING:
+% - 3 Main options for choosing bins
+%   - 1) Manual: edges = linspace(min(dp), max(dp), 15); % 15 bins on linear scale
+%   - 2) Freedman-Diaconis ('fd') (automatic/t):  [counts, edges] = histcounts(dp, 'BinMethod', 'fd');
+%   - 3) Scotts Rule: good if data norm dist: [counts, edges] = histcounts(dp, 'BinMethod', 'scott');
+% - Data Range Narrow (~10-50 nm) 
+%       - Linear binning is often fine, but lognormal fit is still reasonable.
+%- Date Range wide (1 - 200 nm)
+%       - On a linear x-axis, bins are uniform, and small particles may dominate.
+%       - On a logarithmic x-axis, bins cover orders of magnitude and better represent small + large particles together
+% NORMALIZING: Can normalize by count, pdf, or probability (rel frequency)
+%   - pdf normalization = area under curve is 1 
+
+% DATA NOTES
+% BY HAND DATA
+% - generally narrow range, so fits lognormal and normal distributions okay
+% - using lognormal, but linear binning 
+
+% Difference for PSDF
+% - special type of histogram
+
+%  Notes on Lognormal Distrbutions
+% - x = dp, log(x) can often be described as normally distributed
+% - y-axis: dN/dlog(dp)/Ntot
+%   - dN = num particles in small group range
+%   - dlog(dp) = Increment in the logarithm of particle diameter.
+%   - Ntot = total # particles
+%   - dN/dlog(dp) = particles per logarithmic interval
+%   - normalized by Ntot
+% - Plotting:
+%   - Answers: How are particles distributed across logarithmic size intervals?" 
+%       rather than: How many particles are between 1 nm and 2 nm?
+%       When size spans orders of magnitude, option one is best.
+
+% For project
+% -  Added folder containing the manual analysis of individual dp vs T
+% -  Fitting lognormal distribution to data uses maxlikelihood esimtator
+% -  What we might need is atems to spit out all the dp measurements per
+%   agglomerate, instead of just 1, can you make it do this?
+
+% Currently:
+% - loads atems and validation data
+% - organizes it and loops through Temperatures, does some stats
+% - plots Histogram lognormal fit for validation data and atems data
+% - saves histograms to manual_measurements/histograms
+% Next steps:
+% - get atems to return MORE dp data (so dp for each particle in a given
+%   agglomerate
+% - filter atems data 
+%   - by the surface area of the particle, 
+%   - by the bad_images text file 
+% - Compute the standard PSDF for these things,  dN/dlog(dp)/Ntot vs dp 
