@@ -21,3 +21,9 @@ Notes on the workflow for ChemE 277:
 
 - Folders within the 'data' folder (rename to TEM_data?): 
     > (TBD)
+
+- Things that were found not to work:
+    > Weighting the average Dp from an aggregate by the area.
+    > Artificially boosting the grey threshold when detecting aggregates
+
+
