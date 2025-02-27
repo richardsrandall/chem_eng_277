@@ -20,13 +20,15 @@ edge_max                = 40;
 preset_edges            = linspace(edge_min, edge_max, n_edges); % goes into histcounts() to return counts and edges
 
 % For plotting
-weight_by_agg_area = true;
-save_histograms         = true;
+save_histograms = true;
+weight_by_agg_area = false;
 overlap = true;
-plots_to_keep_open = [5];
-save_plots_mode = true;
+open_all_plots = false;
+plots_to_keep_open = [1,2,3,4];
+save_plots_mode = false;
 
 % File locations
+%data_dir_name = 'small_validation_data';
 data_dir_name = 'validation_data';
 save_subfolder='default';
 save_dir_name = strcat([data_dir_name,'/',save_subfolder,'/']);
@@ -94,6 +96,13 @@ pdf_logNorm_atems      = zeros(length(x_range), 5);      % prob density function
 dp_vals_atems       = nan(height(data_atems(:,1)), 5);  % for  dp's
 N_agg_tot_atems     = zeros(1,5);                       %  total # of aggs id'd per T5
 
+%% OVERRIDE THE ATEMS DATA
+full_path_atems = strcat(sprintf('processed_data/%s/all_primary_particles.csv',data_dir_name));
+data_atems = readtable(full_path_atems);
+data_atems.dp = data_atems.Var1;
+data_atems.area = data_atems.Var1*0+1; % Normalizing this will do nothing
+data_atems.Temperature = data_atems.Var2;
+
 %% Loop over each T5, compute things
 % - a histogram
 % - fit a lognormal, 
@@ -102,8 +111,8 @@ N_agg_tot_atems     = zeros(1,5);                       %  total # of aggs id'd 
 % - store the number of agglomerates or particles measured 
 
 % Prepare figures for overlay later
-figure_combined_dp = figure; hold on;
-figure_combined_Rg = figure; hold on;
+%figure_combined_dp = figure; hold on;
+%figure_combined_Rg = figure; hold on;
 
 % Loop over each temperature
 for i = 1:num_conditions
@@ -121,11 +130,11 @@ for i = 1:num_conditions
     % FILTER 1: pp less than XX  nm are most definitely noise
     if filterBy_dpMin
         dp_min = 7; % nm
-        temp_data_atems = temp_data_atems(temp_data_atems.dp_pcm > dp_min, :);
-        dp_temp_atems = temp_data_atems.dp_pcm;
+        temp_data_atems = temp_data_atems(temp_data_atems.dp > dp_min, :);
+        dp_temp_atems = temp_data_atems.dp;
         N_agg_tot_atems(i) = length(dp_temp_atems);     % number of aggs Identified by atems for this T5
     else
-        dp_temp_atems = temp_data_atems.dp_pcm;
+        dp_temp_atems = temp_data_atems.dp;
         N_agg_tot_atems(i) = length(dp_temp_atems);   
     end
     % WEIGHT BY AREA
@@ -249,7 +258,9 @@ end
 % don't want. Intended for debugging. Must disable to save figures.
 all_open_figures = findobj(0, 'type', 'figure');
 if ~save_plots_mode
-    delete(setdiff(all_open_figures, plots_to_keep_open)); 
+    if ~open_all_plots
+        delete(setdiff(all_open_figures, plots_to_keep_open)); 
+    end
 end
 
 %% Save figures
@@ -290,7 +301,9 @@ if save_histograms
 end
 
 if save_plots_mode
-    close all
+    if ~open_all_plots
+        close all
+    end
 end
 
 

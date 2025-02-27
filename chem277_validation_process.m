@@ -93,6 +93,18 @@ if cache_pixel_sizes
 end
 fname = {Imgs.fname};
 
+%% Forcibly resize the images to get rid of the scale bar (!)
+for ii=1:length(Imgs)
+    raw = Imgs(ii).raw;
+    s = size(raw);
+    scale_bar_height = 150;
+    Imgs(ii).raw = raw(1:s(1)-scale_bar_height,:);
+    Imgs(ii).cropped = raw(1:s(1)-scale_bar_height,:);
+end
+imgs = {Imgs.cropped};
+imshow(cell2mat(imgs(1)))
+
+
 %% Do Kmeans, return segmented image
 imgs_binary = agg.seg_kmeans(imgs, pixsizes);
 
@@ -100,14 +112,27 @@ imgs_binary = agg.seg_kmeans(imgs, pixsizes);
 Aggs = agg.analyze_binary(imgs_binary, pixsizes, imgs, fname);
 
 %% Particle scale analysis
-Aggs = pp.pcm(Aggs); % apply pair correlation method
+%Aggs = pp.pcm(Aggs); % apply pair correlation method - DEPRECATED
 
-%% Optional breakpoint
-% Sometimes, Matlab will infuriatingly crash while executing the next
-% section. Uncomment this return when you relaunch Matlab to run everything
-% up to here, then skip the next section and go straight to the last one.
-% This seems to be due to a bug in the underlying ATEMS code.
-%return
+delete('validate_primary_particle_detection/*')
+Aggs = pp.hough_kook2(Aggs);
+
+%% Manually aggregate the Hough-Kook primary particles into a spreadsheet...
+pp_diams = [];
+%for q = 1:length(Aggs)
+%    pp_diams = [pp_diams, Aggs(q).Pp_kook.dp];
+%end
+for q = 1:length(Aggs)
+    new_pp = Aggs(q).Pp_kook.dp;
+    fname = Aggs(q).fname;
+    where_K = strfind(fname,"K_");
+    where_K = where_K(1);
+    temp = str2double(fname(where_K-4:where_K-1));
+    if length(new_pp)>0
+        stack_me = [new_pp, temp*ones(length(new_pp),1)];
+        pp_diams = [pp_diams; stack_me];
+    end
+end
 
 %% Save the data in processed folder
 
@@ -116,6 +141,9 @@ tools.write_excel(Aggs, strcat(sprintf('processed_data/%s/kmeans_results.xlsx',d
 tools.imwrite_agg(Aggs, sprintf('processed_data/%s/kmeans_imgs/',data_dir_name))
 % Putting a 'close all' here causes it to beach-ball and crash for some
 % reason.
+
+%% Save the Hough-Kook primaries...
+csvwrite(strcat(sprintf('processed_data/%s/all_primary_particles.csv',data_dir_name)),pp_diams);
 
 %% Analyze aggregates and mess with imgs_binary
 agg_fnames = ({Aggs.fname});            % filename associated with each aggregate
@@ -139,7 +167,7 @@ for i = 1:length(pixsizes)
         size_original = size(img);
         size_final = size(final_img);
         final_img = final_img(:,round(size_final(2)*0.5-size_final(1)*0.5):round(size_final(2)*0.5+size_final(1)*0.5),:);
-        final_img_resized = imresize(final_img,[1024,1024]);
+        final_img_resized = imresize(final_img,[1024-scale_bar_height,1024]);
         RGB = cat(2,final_img_resized,RGB);
         RGB = insertText(RGB,[50,100],"AGGREGATES FOUND","FontSize",50,"BoxColor","green");
     else

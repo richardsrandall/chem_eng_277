@@ -106,8 +106,7 @@ disp(' Segmenting images:'); tools.textbar([0, n]);
 for ii=1:n
     
     img = imgs{ii}; pixsize = pixsizes(ii); % values for this iteration
-    
-    
+
 %== CORE FUNCTION ========================================================%
     morph_param = 0.8 / pixsize; % parameter used to adjust morphological operations
     
@@ -229,9 +228,13 @@ for ii=1:n
     % RICHARD CODE HERE
     s = size(i12); % Size of the whole image
     sbh = 150; % SCALE BAR HEIGHT IN PIXELS
+    
+    % Lines relevant to scale bar
+    %i12(s(1)-sbh:s(1),:)=0;
+    i12(s(1)-5,:)=0;
+    
     i12(:,1:5)=0;
     i12(1:5,:)=0;
-    i12(s(1)-sbh:s(1),:)=0;
     i12(:,s(2)-5:s(2))=0;
     i5(:,1:5)=0;
     i5(1:5,:)=0;

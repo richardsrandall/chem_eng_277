@@ -165,6 +165,9 @@ for ii = 1:n_imgs % run loop as many times as images selected
         end
     end
     
+    where_save = strcat(['validate_primary_particle_detection/',Aggs(aa).fname]);
+    saveas(gcf,where_save);
+    
     tools.textbar([ii, n_imgs]);
     
 end % end of image loop
