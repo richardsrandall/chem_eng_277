@@ -119,10 +119,7 @@ delete('validate_primary_particle_detection/*')
 Aggs = pp.hough_kook2(Aggs);
 
 %% Manually aggregate the Hough-Kook primary particles into a spreadsheet...
-pp_diams = [];
-%for q = 1:length(Aggs)
-%    pp_diams = [pp_diams, Aggs(q).Pp_kook.dp];
-%end
+output = strings(0,3);
 for q = 1:length(Aggs)
     new_pp = Aggs(q).Pp_kook.dp;
     fname = Aggs(q).fname;
@@ -130,8 +127,16 @@ for q = 1:length(Aggs)
     where_K = where_K(1);
     temp = str2double(fname(where_K-4:where_K-1));
     if length(new_pp)>0
-        stack_me = [new_pp, temp*ones(length(new_pp),1)];
-        pp_diams = [pp_diams; stack_me];
+        %stack_me_int = [new_pp, temp*ones(length(new_pp),1)];
+        %pp_diams = [pp_diams; stack_me_int];
+        dp = string(new_pp);
+        temp_strs = string(temp*ones(length(new_pp),1));
+        file_names = fname+strings(length(new_pp),1);
+        disp(temp_strs);
+        disp(file_names);
+        disp(dp);
+        stack_me_str = [temp_strs, dp, file_names];
+        output = [output; stack_me_str];
     end
 end
 
@@ -144,7 +149,7 @@ tools.imwrite_agg(Aggs, sprintf('processed_data/%s/kmeans_imgs/',data_dir_name))
 % reason.
 
 %% Save the Hough-Kook primaries...
-csvwrite(strcat(sprintf('processed_data/%s/all_primary_particles.csv',data_dir_name)),pp_diams);
+writematrix(output,strcat(sprintf('processed_data/%s/all_primary_particles.xlsx',data_dir_name)));
 
 %% Analyze aggregates and mess with imgs_binary
 agg_fnames = ({Aggs.fname});            % filename associated with each aggregate

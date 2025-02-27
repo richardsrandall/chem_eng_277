@@ -20,6 +20,7 @@ edge_max                = 40;
 preset_edges            = linspace(edge_min, edge_max, n_edges); % goes into histcounts() to return counts and edges
 
 % For plotting
+show_kept_images = true;
 save_histograms = true;
 weight_by_agg_area = false;
 overlap = true;
@@ -75,6 +76,7 @@ if exclude_1875K                             % Option to exclude 1875K
     data_atems = data_atems(data_atems.Temperature ~= 1875, :);
 end
 T5s_unique_atems;
+original_data_atems = data_atems;
 
 % Define range of expected dp values for plotting
 x_range     = linspace(2, 50, 200);         % Uniform x range dp for all plots
@@ -97,11 +99,46 @@ dp_vals_atems       = nan(height(data_atems(:,1)), 5);  % for  dp's
 N_agg_tot_atems     = zeros(1,5);                       %  total # of aggs id'd per T5
 
 %% OVERRIDE THE ATEMS DATA
-full_path_atems = strcat(sprintf('processed_data/%s/all_primary_particles.csv',data_dir_name));
-data_atems = readtable(full_path_atems);
-data_atems.dp = data_atems.Var1;
-data_atems.area = data_atems.Var1*0+1; % Normalizing this will do nothing
-data_atems.Temperature = data_atems.Var2;
+if true
+    full_path_atems = strcat(sprintf('processed_data/%s/all_primary_particles.xlsx',data_dir_name));
+    data_atems = readtable(full_path_atems);
+    data_atems.Properties.VariableNames = ["temp","diameter","fname"];
+    data_atems.dp = str2double(data_atems.diameter);
+    data_atems.area = data_atems.dp*0+1; % Normalizing this will do nothing
+    data_atems.Temperature = str2double(data_atems.temp);
+end
+
+% Load the manual override data
+full_path_manual_exclusions = sprintf("processed_data/%s/manual_validation.csv",data_dir_name);
+opts = detectImportOptions(full_path_manual_exclusions,'Delimiter',',');
+manual_exclusions = readtable(full_path_manual_exclusions,opts);
+manual_exclusions.Properties.VariableNames = ["fname","status"];
+manually_excluded_imgs = manual_exclusions(manual_exclusions.status ~= "y", :).fname;
+
+% Filter by pixsize
+pixsize_excluded_imgs = original_data_atems(original_data_atems.pixsize>1.0, :).fname;
+
+%disp(excluded_imgs);
+fprintf("Images with aggregates: %d\n",length(unique(data_atems.fname)));
+data_atems = data_atems(~ismember(data_atems.fname, manually_excluded_imgs),:);
+fprintf("Images after manual exclusions: %d\n",length(unique(data_atems.fname)));
+data_atems = data_atems(~ismember(data_atems.fname, pixsize_excluded_imgs),:);
+%original_data_atems = original_data_atems(~ismember(original_data_atems.fname, pixsize_excluded_imgs),:);
+fprintf("Images after pixel size exclusions: %d\n",length(unique(data_atems.fname)));
+
+% Filter based on image scale and/or manual overrides
+%data_atems = data_atems(data_atems.Temperature ~= 1875, :);
+kept_fnames = unique(data_atems.fname);
+for i=1:length(kept_fnames)
+    fn = string(kept_fnames(i));
+    full_path_pic = sprintf("processed_data/%s/kmeans_imgs/%s",data_dir_name,fn);
+    if show_kept_images
+        imshow(imread(full_path_pic));
+    end
+end
+pause(0.5)
+close all
+
 
 %% Loop over each T5, compute things
 % - a histogram
@@ -167,7 +204,6 @@ for i = 1:num_conditions
     mu_fit_atems  = pd_atems.mu;
     pdf_logNorm_atems(:,i) = pdf(pd_atems, x_range);             % produce pdf over range of dp vals prespecified
     
-
     % % (c) Compute the standard format lognormal distribution
     % % The first pdf_vals provides values per unit of diameter. 
     % % But, in log-space, 
@@ -199,7 +235,7 @@ for i = 1:num_conditions
     % Notes:
     % - should control the bin size, for consistency across temperature
     % Data by Hand ------------------------------------------------------
-    figure("Name",sprintf(" %dK",T5_hand));
+    figure("Name",sprintf("PRIMARY PARTICLES: %dK",T5_hand));
     if ~overlap
         subplot(2,1,1);
     end
@@ -239,6 +275,9 @@ for i = 1:num_conditions
         lg = legend('Manual Data', 'Log-Normal Hand Fit','ATEMS Data', 'Log-Normal ATEMS Fit');
     end
     hold off;
+    
+    figure("Name",sprintf("AGGREGATES: %dK",T5_hand));
+    histogram(original_data_atems(original_data_atems.Temperature==T5_hand,:).da);
 
     % % PLOT PSDF with dN/dlog(dp)/Ntot vs dp as axes
     % figure(figure_combined_dp);
