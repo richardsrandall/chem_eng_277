@@ -14,13 +14,15 @@ Notes on the workflow for ChemE 277:
 - Diagnostic files that get generated along the way:
     > validate_scale_bar_detection: quickly check that OCR and SB detection is behaving
     > validate_object_detection: check how well aggregate and primary particle detection are working
+    > validate_primary_particle_detection: show how Kook primary particle detection worked
 
 - We auto-detect the aggregates and primary particles, then manually reject the bad ones
+    > manual_image_checker.m provides a nice workflow for doing this
+    > chopping off the scale bar and adding a black frame around the image edge worked nicely
 
 - Added 'chem277_empty_output_folders' to purge large images before Git pushes
 
-- Folders within the 'data' folder (rename to TEM_data?): 
-    > (TBD)
+- Folders within the 'data' folder: small_validation_data, validation_data, all_pyrolysis_data
 
 - Things that were found not to work:
     > Weighting the average Dp from an aggregate by the area.
