@@ -187,6 +187,9 @@ for i = 1:num_conditions
     histogram(which_hist_data, edges,'FaceColor',	"#D95319",'Normalization', 'pdf','FaceAlpha',0.6); % Histogram of data
     hold on
     plot(x_range, pdf_logNorm_atems(:,i), 'r-', 'LineWidth', 2);              % Plot fitted log-normal curve  
+    text(0.02,0.98,...
+        sprintf('Number of ATEMS  primary particles: %d',length(which_hist_data)),...
+        'Units','Normalized','HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
     %title(['ATEMS: ', num2str(T5_atems),' K. N_agg: ', num2str(N_agg_tot_atems(i))]);
     xlabel('Primary Particle Diameter [nm]');
     ylabel('Probability Density');
@@ -199,6 +202,9 @@ for i = 1:num_conditions
     fit_agg_diams      = fitdist(agg_diams, 'Lognormal');  
     histogram(agg_diams,'FaceColor',"#CF9FFF",'Normalization', 'pdf','FaceAlpha',0.6);
     hold on;
+    text(0.02,0.98,...
+        sprintf('Number of ATEMS  aggregates: %d',length(agg_diams)),...
+        'Units','Normalized','HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
     xvs = linspace(10,max(agg_diams),200);
     plot(xvs, pdf(fit_agg_diams, xvs), 'm-', 'LineWidth', 2);
     legend('Aggregate Size Data', 'Log-Normal Fit');

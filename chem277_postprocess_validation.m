@@ -234,6 +234,9 @@ for i = 1:num_conditions
     %figure("Name",sprintf("Hist.ATEMS: %dK",T5_atems));
     which_hist_data = dp_temp_atems;
     histogram(which_hist_data, edges,'FaceColor',	"#D95319",'Normalization', 'pdf','FaceAlpha',0.6); % Histogram of data
+    text(0.02,0.98,...
+        sprintf('Number of ATEMS  primary particles: %d\nNumber of manual primary particles: %d',length(which_hist_data), length(dp_temp_hand)),...
+        'Units','Normalized','HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
     plot(x_range, pdf_logNorm_atems(:,i), 'r-', 'LineWidth', 2);              % Plot fitted log-normal curve  
     %title(['ATEMS: ', num2str(T5_atems),' K. N_agg: ', num2str(N_agg_tot_atems(i))]);
     xlabel('Primary Particle Diameter [nm]');
@@ -248,9 +251,12 @@ for i = 1:num_conditions
     figure("Name",sprintf("AGGREGATES: %dK",T5_hand));
     agg_diams = (original_data_atems(original_data_atems.Temperature==T5_hand,:).da);
     log_agg_diams  = log(agg_diams); mu_agg_diams = mean(log_agg_diams);
-    fit_agg_diams      = fitdist(agg_diams, 'Lognormal');  
+    fit_agg_diams      = fitdist(agg_diams, 'Lognormal');
     histogram(agg_diams,'FaceColor',"#CF9FFF",'Normalization', 'pdf','FaceAlpha',0.6);
     hold on;
+    text(0.02,0.98,...
+        sprintf('Number of ATEMS  aggregates: %d',length(agg_diams)),...
+        'Units','Normalized','HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
     xvs = linspace(10,max(agg_diams),200);
     plot(xvs, pdf(fit_agg_diams, xvs), 'm-', 'LineWidth', 2);
     legend('Aggregate Size Data', 'Log-Normal Fit');
