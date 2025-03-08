@@ -8,7 +8,7 @@
 % Best to downsize the Matlab window before running
 % Use ctrl-c to bail; the 'stop' button doesn't work for some reason.
 target_dir = 'validate_object_detection/';
-save_file = 'processed_data/PLACEHOLDER/manual_validation.csv';
+save_file = 'processed_data/PLACEHOLDER/PLACEHOLDER.csv';
 
 imgs = dir(target_dir);
 output = strings(length(imgs),2);
