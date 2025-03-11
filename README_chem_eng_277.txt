@@ -3,6 +3,8 @@
 
 This is a readme for Richard and Gibson's ChemE 277 final project. Since we're just turning this in for a class and not releasing or publishing it, we're not adding a license for our own modifications. The MIT license for the original atems package is included in 'README_atems_original.md" and the "LICENSE" file.
 
+The purpose of this project is to take in large folders of TEM images of carbon aggregates from pyrolysis experiments and output histograms of both primary particle size distributions and aggregate size distributions. Do do so, we begin with the 'atems' package, a piece of software that implements various useful algorithms for analyzing carbon particles and aggregates. More info on the underlying science can be found in our conference paper, or you can refer to this paper by the creator of items: https://joss.theoj.org/papers/10.21105/joss.06416
+
 Our project and the atems package are implemented in MATLAB. Richard has been running MATLAB R2020b on an M1 Mac and Gibson has been running MATLAB R2024b on a PC, so any versions in between and either OS will probably work fine. To run our code, you also need to install some MATLAB toolboxes. The atems documentation identifies the following MATLAB toolboxes as dependencies: the curve fitting toolbox, the financial toolbox, the image toolbox, the optimization toolbox, and the computer vision toolbox. We are not sure that we actually used the financial toolbox. 
 
 ---------- basic procedure to run the code ------------
