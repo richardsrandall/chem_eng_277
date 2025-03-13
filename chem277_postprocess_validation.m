@@ -197,7 +197,7 @@ for i = 1:num_conditions
     dp_log_hand  = log(dp_temp_hand); mu_hand = mean(dp_log_hand);
     pd_hand      = fitdist(dp_temp_hand, 'Lognormal');         % RETURNS MU, SIGMA params for lognormal dist 
     mu_fit_hand  = pd_hand.mu;
-    hand_text = sprintf("Manual: %4.2f +- %4.2f",exp(pd_hand.mu),2*exp(pd_hand.sigma));
+    hand_text = sprintf("Geom. Avg. from manual: %4.2f +- %4.2f",exp(pd_hand.mu),2*exp(pd_hand.sigma));
     %disp(" ");
     %disp(hand_text);
     pdf_logNorm_hand(:,i) = pdf(pd_hand, x_range);             % produce pdf over range of dp vals prespecified
@@ -205,7 +205,7 @@ for i = 1:num_conditions
     dp_log_atems  = log(dp_temp_atems); mu_atems = mean(dp_log_atems);
     pd_atems      = fitdist(dp_temp_atems, 'Lognormal');         % RETURNS MU, SIGMA params for lognormal dist 
     mu_fit_atems  = pd_atems.mu;
-    atems_text = sprintf("ATEMS: %4.2f +- %4.2f",exp(pd_atems.mu),2*exp(pd_atems.sigma));
+    atems_text = sprintf("Geom. Avg. from ATEMS: %4.2f +- %4.2f",exp(pd_atems.mu),2*exp(pd_atems.sigma));
     %disp(atems_text);
     pdf_logNorm_atems(:,i) = pdf(pd_atems, x_range);             % produce pdf over range of dp vals prespecified
 
@@ -217,6 +217,7 @@ for i = 1:num_conditions
     if ~overlap
         subplot(2,1,1);
     end
+    what_temp = sprintf("Temperature: %dK",T5_hand);
     [counts, edges] = histcounts(dp_temp_hand, preset_edges);
     %figure("Name",sprintf("Hist.Hand: %dK",T5_hand));
     histogram(dp_temp_hand, edges,'FaceColor',"#0072BD",'Normalization', 'pdf','FaceAlpha',0.6); % Histogram of data
@@ -240,7 +241,7 @@ for i = 1:num_conditions
     which_hist_data = dp_temp_atems;
     histogram(which_hist_data, edges,'FaceColor',	"#D95319",'Normalization', 'pdf','FaceAlpha',0.6); % Histogram of data
     text(0.02,0.98,...
-        strcat([sprintf('Number of ATEMS  primary particles: %d\nNumber of manual primary particles: %d',length(which_hist_data), length(dp_temp_hand)),hand_text,atems_text]),...
+        strcat([what_temp,sprintf('Number of ATEMS  primary particles: %d\nNumber of manual primary particles: %d',length(which_hist_data), length(dp_temp_hand)),hand_text,atems_text]),...
         'Units','Normalized','HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
     plot(x_range, pdf_logNorm_atems(:,i), 'r-', 'LineWidth', 2);              % Plot fitted log-normal curve  
     %title(['ATEMS: ', num2str(T5_atems),' K. N_agg: ', num2str(N_agg_tot_atems(i))]);
@@ -257,12 +258,12 @@ for i = 1:num_conditions
     agg_diams = (original_data_atems(original_data_atems.Temperature==T5_hand,:).da);
     log_agg_diams  = log(agg_diams); mu_agg_diams = mean(log_agg_diams);
     fit_agg_diams      = fitdist(agg_diams, 'Lognormal');
-    agg_text = sprintf("Aggregates: %4.2f +- %4.2f \n",exp(fit_agg_diams.mu),2*exp(fit_agg_diams.sigma));
+    agg_text = sprintf("Geom. avg size: %4.2f +- %4.2f \n",exp(fit_agg_diams.mu),2*exp(fit_agg_diams.sigma));
     %disp(agg_text);
     histogram(agg_diams,'FaceColor',"#CF9FFF",'Normalization', 'pdf','FaceAlpha',0.6);
     hold on;
     text(0.02,0.98,...
-        strcat([sprintf('Number of ATEMS  aggregates: %d',length(agg_diams)),agg_text]),...
+        strcat([what_temp,sprintf('Number of ATEMS  aggregates: %d',length(agg_diams)),agg_text]),...
         'Units','Normalized','HorizontalAlignment', 'left', 'VerticalAlignment', 'top');
     xvs = linspace(10,max(agg_diams),200);
     plot(xvs, pdf(fit_agg_diams, xvs), 'm-', 'LineWidth', 2);
