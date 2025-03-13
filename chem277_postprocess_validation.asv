@@ -168,7 +168,7 @@ for i = 1:num_conditions
         fprintf("Skipping plots of Temp = %dK because there are too few PP's/aggregates.\n",T5_atems);
         continue
     else
-        fprintf("\nPlotting Temp = %dK...",T5_atems);
+        fprintf("\nPlotting Temp = %dK...\n",T5_atems);
     end
     
     % FILTERING ATEMS DATA
@@ -198,15 +198,14 @@ for i = 1:num_conditions
     pd_hand      = fitdist(dp_temp_hand, 'Lognormal');         % RETURNS MU, SIGMA params for lognormal dist 
     mu_fit_hand  = pd_hand.mu;
     hand_text = sprintf("Manual: %4.2f +- %4.2f",exp(pd_hand.mu),2*exp(pd_hand.sigma));
-    %disp(" ");
-    %disp(hand_text);
+    disp(hand_text);
     pdf_logNorm_hand(:,i) = pdf(pd_hand, x_range);             % produce pdf over range of dp vals prespecified
     % ATEMS DATA -------------------------------------------------------
     dp_log_atems  = log(dp_temp_atems); mu_atems = mean(dp_log_atems);
     pd_atems      = fitdist(dp_temp_atems, 'Lognormal');         % RETURNS MU, SIGMA params for lognormal dist 
     mu_fit_atems  = pd_atems.mu;
     atems_text = sprintf("ATEMS: %4.2f +- %4.2f",exp(pd_atems.mu),2*exp(pd_atems.sigma));
-    %disp(atems_text);
+    disp(atems_text);
     pdf_logNorm_atems(:,i) = pdf(pd_atems, x_range);             % produce pdf over range of dp vals prespecified
 
     % (c) Plotting Individual histograms and lognormal fit
@@ -258,7 +257,7 @@ for i = 1:num_conditions
     log_agg_diams  = log(agg_diams); mu_agg_diams = mean(log_agg_diams);
     fit_agg_diams      = fitdist(agg_diams, 'Lognormal');
     agg_text = sprintf("Aggregates: %4.2f +- %4.2f \n",exp(fit_agg_diams.mu),2*exp(fit_agg_diams.sigma));
-    %disp(agg_text);
+    disp(agg_tex
     histogram(agg_diams,'FaceColor',"#CF9FFF",'Normalization', 'pdf','FaceAlpha',0.6);
     hold on;
     text(0.02,0.98,...
@@ -272,8 +271,6 @@ for i = 1:num_conditions
     hold off;
 
 end
-
-disp(" ");
 
 % Close all but a certain figure to avoid manually x'ing out of ones you
 % don't want. Intended for debugging. Must disable to save figures.
