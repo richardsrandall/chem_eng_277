@@ -303,7 +303,7 @@ if save_histograms
     
         % Sanitize the name for use as a file name
         % Remove invalid characters for file names (like :, /, etc.)
-        sanitizedFigName = regexprep(figName, '[:\/\\\*\?\"<>\|]', '_');
+        sanitizedFigName = regexprep(figName, '[:\/\\\*\?\"<>\|]', '');
         
         % Generate file paths
         pngFile = fullfile(figoutputFolder, [sanitizedFigName '.png']);
